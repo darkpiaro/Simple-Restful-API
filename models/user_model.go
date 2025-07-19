@@ -55,7 +55,7 @@ func InitDB() error {
 	// Build connection string from environment variables
 	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%s;database=%s",
 		dbServer, dbUser, dbPassword, dbPort, dbName)
-	
+
 	db, err = sql.Open("sqlserver", connString)
 	if err != nil {
 		return fmt.Errorf("error opening database: %v", err)
@@ -101,18 +101,17 @@ func (u *User) Create() error {
 		return fmt.Errorf("error hashing password: %v", err)
 	}
 
-	query := "INSERT INTO users (username, password, full_name) VALUES (?, ?, ?)"
-	result, err := db.Exec(query, u.Username, string(hashedPassword), u.FullName)
+	query := "INSERT INTO users (username, password, full_name) OUTPUT INSERTED.id VALUES (@username, @password, @fullname)"
+	var newID int
+	err = db.QueryRow(query,
+		sql.Named("username", u.Username),
+		sql.Named("password", string(hashedPassword)),
+		sql.Named("fullname", u.FullName)).Scan(&newID)
 	if err != nil {
 		return fmt.Errorf("error creating user: %v", err)
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("error getting last insert id: %v", err)
-	}
-
-	u.ID = int(id)
+	u.ID = newID
 	u.Password = "" // Clear password from struct
 	return nil
 }
@@ -141,8 +140,8 @@ func GetAllUsers() ([]User, error) {
 
 // GetByID retrieves a user by ID
 func GetUserByID(id int) (*User, error) {
-	query := "SELECT id, username, full_name FROM users WHERE id = ?"
-	row := db.QueryRow(query, id)
+	query := "SELECT id, username, full_name FROM users WHERE id = @id"
+	row := db.QueryRow(query, sql.Named("id", id))
 
 	var user User
 	err := row.Scan(&user.ID, &user.Username, &user.FullName)
@@ -158,8 +157,8 @@ func GetUserByID(id int) (*User, error) {
 
 // GetUserByUsername retrieves a user by username (for login)
 func GetUserByUsername(username string) (*User, error) {
-	query := "SELECT id, username, password, full_name FROM users WHERE username = ?"
-	row := db.QueryRow(query, username)
+	query := "SELECT id, username, password, full_name FROM users WHERE username = @username"
+	row := db.QueryRow(query, sql.Named("username", username))
 
 	var user User
 	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.FullName)
@@ -176,7 +175,7 @@ func GetUserByUsername(username string) (*User, error) {
 // Update updates a user
 func (u *User) Update() error {
 	var query string
-	var args []interface{}
+	var err error
 
 	// If password is provided, hash it and update
 	if u.Password != "" {
@@ -184,15 +183,21 @@ func (u *User) Update() error {
 		if err != nil {
 			return fmt.Errorf("error hashing password: %v", err)
 		}
-		query = "UPDATE users SET username = ?, password = ?, full_name = ? WHERE id = ?"
-		args = []interface{}{u.Username, string(hashedPassword), u.FullName, u.ID}
+		query = "UPDATE users SET username = @username, password = @password, full_name = @fullname WHERE id = @id"
+		_, err = db.Exec(query,
+			sql.Named("username", u.Username),
+			sql.Named("password", string(hashedPassword)),
+			sql.Named("fullname", u.FullName),
+			sql.Named("id", u.ID))
 	} else {
 		// Update without password
-		query = "UPDATE users SET username = ?, full_name = ? WHERE id = ?"
-		args = []interface{}{u.Username, u.FullName, u.ID}
+		query = "UPDATE users SET username = @username, full_name = @fullname WHERE id = @id"
+		_, err = db.Exec(query,
+			sql.Named("username", u.Username),
+			sql.Named("fullname", u.FullName),
+			sql.Named("id", u.ID))
 	}
 
-	_, err := db.Exec(query, args...)
 	if err != nil {
 		return fmt.Errorf("error updating user: %v", err)
 	}
@@ -203,8 +208,8 @@ func (u *User) Update() error {
 
 // Delete deletes a user
 func DeleteUser(id int) error {
-	query := "DELETE FROM users WHERE id = ?"
-	result, err := db.Exec(query, id)
+	query := "DELETE FROM users WHERE id = @id"
+	result, err := db.Exec(query, sql.Named("id", id))
 	if err != nil {
 		return fmt.Errorf("error deleting user: %v", err)
 	}

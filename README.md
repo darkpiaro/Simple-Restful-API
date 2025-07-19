@@ -14,6 +14,7 @@ REST API ที่สร้างด้วยภาษา Go ตามโคร�
 
 ```
 ├── main.go                     // ไฟล์เริ่มต้นโปรแกรม
+├── start-server.bat           // สคริปต์เริ่มต้นเซิร์ฟเวอร์
 ├── controllers/
 │   ├── auth_controller.go      // Controller สำหรับ Login
 │   └── user_controller.go      // Controller สำหรับจัดการ User CRUD
@@ -21,8 +22,14 @@ REST API ที่สร้างด้วยภาษา Go ตามโคร�
 │   └── user_model.go          // Model และฟังก์ชันฐานข้อมูล
 ├── middlewares/
 │   └── auth_middleware.go     // Middleware ตรวจสอบ JWT
-└── utils/
-    └── token.go               // ฟังก์ชันจัดการ JWT
+├── utils/
+│   └── token.go               // ฟังก์ชันจัดการ JWT
+└── tests/
+    ├── test-api.ps1           // สคริปต์ทดสอบ API พื้นฐาน
+    ├── test-crud.ps1          // สคริปต์ทดสอบ CRUD operations
+    ├── test-errors.ps1        // สคริปต์ทดสอบ error handling
+    ├── TEST_RESULTS.md        // รายงานผลการทดสอบ
+    └── README.md              // คำแนะนำการทดสอบ
 ```
 
 ## การติดตั้งและใช้งาน
@@ -35,19 +42,46 @@ go mod tidy
 
 ### 2. ตั้งค่าฐานข้อมูล
 
-แก้ไข connection string ในไฟล์ `models/user_model.go`:
+แก้ไขไฟล์ `.env` ตามการตั้งค่าฐานข้อมูลของคุณ:
 
-```go
-connString := "server=localhost;user id=sa;password=YourPassword123;port=1433;database=TestDB"
+```env
+DB_SERVER=your-server
+DB_USER=sa
+DB_PASSWORD=your-password
+DB_PORT=1433
+DB_NAME=your-database
+JWT_SECRET=your-secret-key
+PORT=8080
 ```
 
 ### 3. รันโปรแกรม
 
 ```bash
+# วิธีที่ 1: รันด้วย Go command
 go run main.go
+
+# วิธีที่ 2: ใช้ batch file (Windows)
+.\start-server.bat
 ```
 
 Server จะทำงานที่ port 8080
+
+## 🧪 การทดสอบ API
+
+ใช้สคริปต์ทดสอบใน folder `tests/`:
+
+```powershell
+# ทดสอบฟังก์ชันพื้นฐาน
+.\tests\test-api.ps1
+
+# ทดสอบ CRUD operations
+.\tests\test-crud.ps1
+
+# ทดสอบ error handling
+.\tests\test-errors.ps1
+```
+
+ดูรายละเอียดเพิ่มเติมใน `tests/README.md`
 
 ## API Endpoints
 

@@ -53,6 +53,11 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 
+# Test results and logs
+tests/*.log
+tests/results/
+tests/TEST_RESULTS.md
+
 # Build directories
 build/
 dist/
