@@ -13,13 +13,13 @@ import (
 func getJWTSecret() []byte {
 	// Load .env file if it exists
 	godotenv.Load()
-	
+
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		// Fallback to default secret (not recommended for production)
 		secret = "your-secret-key-change-this-in-production"
 	}
-	
+
 	return []byte(secret)
 }
 
@@ -64,17 +64,6 @@ func ValidateToken(tokenString string) (*Claims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return getJWTSecret(), nil
-	})}
-
-// ValidateToken validates and parses a JWT token
-func ValidateToken(tokenString string) (*Claims, error) {
-	// Parse token
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		// Validate signing method
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return jwtSecret, nil
 	})
 
 	if err != nil {
