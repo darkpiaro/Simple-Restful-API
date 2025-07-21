@@ -5,8 +5,8 @@ Write-Host "Extended API Testing - CRUD Operations" -ForegroundColor Green
 # First, login to get token
 Write-Host "`n1. Getting JWT token..." -ForegroundColor Yellow
 $loginBody = @{
-    username = "darkpiaro"
-    password = "password123"
+    username = "darkpiaro_updated"
+    password = "newpassword123"
 } | ConvertTo-Json
 
 try {
@@ -22,7 +22,8 @@ try {
 Write-Host "`n2. Testing UPDATE user..." -ForegroundColor Yellow
 $updateBody = @{
     username = "darkpiaro_updated"
-    full_name = "Dark Piaro Updated"
+    fullname = "Dark Piaro Updated"
+    email = "darkpiaro.updated@example.com"
     password = "newpassword123"
 } | ConvertTo-Json
 
@@ -54,13 +55,14 @@ Write-Host "`n4. Creating second user for deletion test..." -ForegroundColor Yel
 $body2 = @{
     username = "testuser2"
     password = "password123"
-    full_name = "Test User 2"
+    fullname = "Test User 2"
+    email = "testuser2@example.com"
 } | ConvertTo-Json
 
 try {
     $response2 = Invoke-RestMethod -Uri "http://localhost:8080/users" -Method POST -Headers @{"Content-Type"="application/json"} -Body $body2
     Write-Host "✅ Second user created!" -ForegroundColor Green
-    $userId2 = $response2.user.id
+    $userId2 = $response2.user.userid
 } catch {
     Write-Host "❌ Failed to create second user: $($_.Exception.Message)" -ForegroundColor Red
     return

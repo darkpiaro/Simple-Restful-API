@@ -12,14 +12,16 @@ import (
 type CreateUserRequest struct {
 	Username string `json:"username" binding:"required" example:"johndoe"`
 	Password string `json:"password" binding:"required" example:"password123"`
-	FullName string `json:"full_name" binding:"required" example:"John Doe"`
+	FullName string `json:"fullname" binding:"required" example:"John Doe"`
+	Email    string `json:"email" example:"john@example.com"`
 }
 
 // UpdateUserRequest represents the request body for updating a user
 type UpdateUserRequest struct {
 	Username string `json:"username" example:"johndoe_updated"`
 	Password string `json:"password" example:"newpassword123"`
-	FullName string `json:"full_name" example:"John Doe Updated"`
+	FullName string `json:"fullname" example:"John Doe Updated"`
+	Email    string `json:"email" example:"john.updated@example.com"`
 }
 
 // CreateUser creates a new user
@@ -50,6 +52,7 @@ func CreateUser(c *gin.Context) {
 		Username: req.Username,
 		Password: req.Password,
 		FullName: req.FullName,
+		Email:    req.Email,
 	}
 
 	// Save user to database
@@ -187,6 +190,9 @@ func UpdateUser(c *gin.Context) {
 	}
 	if req.FullName != "" {
 		existingUser.FullName = req.FullName
+	}
+	if req.Email != "" {
+		existingUser.Email = req.Email
 	}
 	if req.Password != "" {
 		existingUser.Password = req.Password

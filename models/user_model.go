@@ -13,10 +13,15 @@ import (
 
 // User represents a user in the system
 type User struct {
-	ID       int    `json:"id" example:"1"`
-	Username string `json:"username" example:"johndoe"`
-	Password string `json:"password,omitempty"` // omitempty เพื่อไม่ส่ง password ใน response
-	FullName string `json:"full_name" example:"John Doe"`
+	UserID    int    `json:"userid" example:"1"`
+	Username  string `json:"username" example:"johndoe"`
+	Password  string `json:"password,omitempty"` // omitempty เพื่อไม่ส่ง password ใน response
+	FullName  string `json:"fullname" example:"John Doe"`
+	Email     string `json:"email" example:"john@example.com"`
+	CreatedBy *int   `json:"created_by,omitempty"`
+	CreatedOn string `json:"created_on,omitempty"`
+	UpdatedBy *int   `json:"updated_by,omitempty"`
+	UpdatedOn string `json:"updated_on,omitempty"`
 }
 
 var db *sql.DB
@@ -68,14 +73,25 @@ func InitDB() error {
 		return fmt.Errorf("error connecting to database: %v", err)
 	}
 
-	// Create users table if not exists
+	// Drop and recreate table with new structure
+	dropTableQuery := `IF EXISTS (SELECT * FROM sysobjects WHERE name='users' AND xtype='U') DROP TABLE users`
+	_, err = db.Exec(dropTableQuery)
+	if err != nil {
+		log.Printf("Warning: Could not drop existing table: %v", err)
+	}
+
+	// Create users table with new structure
 	createTableQuery := `
-	IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='users' AND xtype='U')
 	CREATE TABLE users (
-		id INT IDENTITY(1,1) PRIMARY KEY,
+		userid INT IDENTITY(1,1) PRIMARY KEY,
 		username NVARCHAR(50) UNIQUE NOT NULL,
 		password NVARCHAR(255) NOT NULL,
-		full_name NVARCHAR(100) NOT NULL
+		fullname NVARCHAR(100) NOT NULL,
+		email NVARCHAR(100) NULL,
+		created_by INT NULL,
+		created_on DATETIME DEFAULT GETDATE(),
+		updated_by INT NULL,
+		updated_on DATETIME NULL
 	)`
 
 	_, err = db.Exec(createTableQuery)
@@ -102,24 +118,25 @@ func (u *User) Create() error {
 		return fmt.Errorf("error hashing password: %v", err)
 	}
 
-	query := "INSERT INTO users (username, password, full_name) OUTPUT INSERTED.id VALUES (@username, @password, @fullname)"
+	query := "INSERT INTO users (username, password, fullname, email) OUTPUT INSERTED.userid VALUES (@username, @password, @fullname, @email)"
 	var newID int
 	err = db.QueryRow(query,
 		sql.Named("username", u.Username),
 		sql.Named("password", string(hashedPassword)),
-		sql.Named("fullname", u.FullName)).Scan(&newID)
+		sql.Named("fullname", u.FullName),
+		sql.Named("email", u.Email)).Scan(&newID)
 	if err != nil {
 		return fmt.Errorf("error creating user: %v", err)
 	}
 
-	u.ID = newID
+	u.UserID = newID
 	u.Password = "" // Clear password from struct
 	return nil
 }
 
 // GetAll retrieves all users
 func GetAllUsers() ([]User, error) {
-	query := "SELECT id, username, full_name FROM users"
+	query := "SELECT userid, username, fullname, email, created_on FROM users"
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error querying users: %v", err)
@@ -129,7 +146,7 @@ func GetAllUsers() ([]User, error) {
 	var users []User
 	for rows.Next() {
 		var user User
-		err := rows.Scan(&user.ID, &user.Username, &user.FullName)
+		err := rows.Scan(&user.UserID, &user.Username, &user.FullName, &user.Email, &user.CreatedOn)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning user: %v", err)
 		}
@@ -141,11 +158,11 @@ func GetAllUsers() ([]User, error) {
 
 // GetByID retrieves a user by ID
 func GetUserByID(id int) (*User, error) {
-	query := "SELECT id, username, full_name FROM users WHERE id = @id"
+	query := "SELECT userid, username, fullname, email, created_on FROM users WHERE userid = @id"
 	row := db.QueryRow(query, sql.Named("id", id))
 
 	var user User
-	err := row.Scan(&user.ID, &user.Username, &user.FullName)
+	err := row.Scan(&user.UserID, &user.Username, &user.FullName, &user.Email, &user.CreatedOn)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("user not found")
@@ -158,11 +175,11 @@ func GetUserByID(id int) (*User, error) {
 
 // GetUserByUsername retrieves a user by username (for login)
 func GetUserByUsername(username string) (*User, error) {
-	query := "SELECT id, username, password, full_name FROM users WHERE username = @username"
+	query := "SELECT userid, username, password, fullname, email FROM users WHERE username = @username"
 	row := db.QueryRow(query, sql.Named("username", username))
 
 	var user User
-	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.FullName)
+	err := row.Scan(&user.UserID, &user.Username, &user.Password, &user.FullName, &user.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("user not found")
@@ -184,19 +201,21 @@ func (u *User) Update() error {
 		if err != nil {
 			return fmt.Errorf("error hashing password: %v", err)
 		}
-		query = "UPDATE users SET username = @username, password = @password, full_name = @fullname WHERE id = @id"
+		query = "UPDATE users SET username = @username, password = @password, fullname = @fullname, email = @email, updated_on = GETDATE() WHERE userid = @id"
 		_, err = db.Exec(query,
 			sql.Named("username", u.Username),
 			sql.Named("password", string(hashedPassword)),
 			sql.Named("fullname", u.FullName),
-			sql.Named("id", u.ID))
+			sql.Named("email", u.Email),
+			sql.Named("id", u.UserID))
 	} else {
 		// Update without password
-		query = "UPDATE users SET username = @username, full_name = @fullname WHERE id = @id"
+		query = "UPDATE users SET username = @username, fullname = @fullname, email = @email, updated_on = GETDATE() WHERE userid = @id"
 		_, err = db.Exec(query,
 			sql.Named("username", u.Username),
 			sql.Named("fullname", u.FullName),
-			sql.Named("id", u.ID))
+			sql.Named("email", u.Email),
+			sql.Named("id", u.UserID))
 	}
 
 	if err != nil {
@@ -209,7 +228,7 @@ func (u *User) Update() error {
 
 // Delete deletes a user
 func DeleteUser(id int) error {
-	query := "DELETE FROM users WHERE id = @id"
+	query := "DELETE FROM users WHERE userid = @id"
 	result, err := db.Exec(query, sql.Named("id", id))
 	if err != nil {
 		return fmt.Errorf("error deleting user: %v", err)

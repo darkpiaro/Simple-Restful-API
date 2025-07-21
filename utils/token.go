@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -23,6 +24,17 @@ func getJWTSecret() []byte {
 	return []byte(secret)
 }
 
+func getHourExpiration() time.Duration {
+	// Default to 24 hours
+	hourExpiration := 24 * time.Hour
+	if hourExpirationStr := os.Getenv("JWT_EXPIRATION_HOURS"); hourExpirationStr != "" {
+		if parsed, err := strconv.Atoi(hourExpirationStr); err == nil {
+			hourExpiration = time.Duration(parsed) * time.Hour
+		}
+	}
+	return hourExpiration
+}
+
 // Claims structure for JWT
 type Claims struct {
 	UserID   int    `json:"user_id"`
@@ -32,12 +44,13 @@ type Claims struct {
 
 // GenerateToken creates a new JWT token for the user
 func GenerateToken(userID int, username string) (string, error) {
+	hourExpiration := getHourExpiration()
 	// Create claims with user data and expiration time (24 hours)
 	claims := &Claims{
 		UserID:   userID,
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+			ExpiresAt: time.Now().Add(hourExpiration).Unix(),
 			IssuedAt:  time.Now().Unix(),
 			Issuer:    "simple-restful-api",
 		},

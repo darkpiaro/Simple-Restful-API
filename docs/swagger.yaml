@@ -2,7 +2,10 @@ basePath: /
 definitions:
   controllers.CreateUserRequest:
     properties:
-      full_name:
+      email:
+        example: john@example.com
+        type: string
+      fullname:
         example: John Doe
         type: string
       password:
@@ -12,7 +15,7 @@ definitions:
         example: johndoe
         type: string
     required:
-    - full_name
+    - fullname
     - password
     - username
     type: object
@@ -41,7 +44,10 @@ definitions:
     type: object
   controllers.UpdateUserRequest:
     properties:
-      full_name:
+      email:
+        example: john.updated@example.com
+        type: string
+      fullname:
         example: John Doe Updated
         type: string
       password:
@@ -53,15 +59,26 @@ definitions:
     type: object
   models.User:
     properties:
-      full_name:
+      created_by:
+        type: integer
+      created_on:
+        type: string
+      email:
+        example: john@example.com
+        type: string
+      fullname:
         example: John Doe
         type: string
-      id:
-        example: 1
-        type: integer
       password:
         description: omitempty เพื่อไม่ส่ง password ใน response
         type: string
+      updated_by:
+        type: integer
+      updated_on:
+        type: string
+      userid:
+        example: 1
+        type: integer
       username:
         example: johndoe
         type: string

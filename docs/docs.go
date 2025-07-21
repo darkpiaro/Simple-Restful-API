@@ -363,12 +363,16 @@ const docTemplate = `{
         "controllers.CreateUserRequest": {
             "type": "object",
             "required": [
-                "full_name",
+                "fullname",
                 "password",
                 "username"
             ],
             "properties": {
-                "full_name": {
+                "email": {
+                    "type": "string",
+                    "example": "john@example.com"
+                },
+                "fullname": {
                     "type": "string",
                     "example": "John Doe"
                 },
@@ -418,7 +422,11 @@ const docTemplate = `{
         "controllers.UpdateUserRequest": {
             "type": "object",
             "properties": {
-                "full_name": {
+                "email": {
+                    "type": "string",
+                    "example": "john.updated@example.com"
+                },
+                "fullname": {
                     "type": "string",
                     "example": "John Doe Updated"
                 },
@@ -435,17 +443,33 @@ const docTemplate = `{
         "models.User": {
             "type": "object",
             "properties": {
-                "full_name": {
+                "created_by": {
+                    "type": "integer"
+                },
+                "created_on": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "john@example.com"
+                },
+                "fullname": {
                     "type": "string",
                     "example": "John Doe"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
                 },
                 "password": {
                     "description": "omitempty เพื่อไม่ส่ง password ใน response",
                     "type": "string"
+                },
+                "updated_by": {
+                    "type": "integer"
+                },
+                "updated_on": {
+                    "type": "string"
+                },
+                "userid": {
+                    "type": "integer",
+                    "example": 1
                 },
                 "username": {
                     "type": "string",

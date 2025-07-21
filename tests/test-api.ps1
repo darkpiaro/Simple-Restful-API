@@ -7,7 +7,8 @@ Write-Host "`n1. Creating a new user..." -ForegroundColor Yellow
 $body = @{
     username = "darkpiaro"
     password = "password123"
-    full_name = "Dark Piaro"
+    fullname = "Dark Piaro"
+    email = "darkpiaro@example.com"
 } | ConvertTo-Json
 
 try {
