@@ -9,7 +9,32 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "simple-restful-api/docs" // Auto-generated Swagger docs
 )
+
+// @title Simple RESTful API
+// @version 1.0
+// @description A simple REST API with JWT authentication built with Go and Gin
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /
+// @schemes http https
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	// Load environment variables
@@ -27,6 +52,9 @@ func main() {
 
 	// Create Gin router
 	router := gin.Default()
+
+	// Swagger documentation route
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Public routes (no authentication required)
 	router.POST("/login", controllers.Login)

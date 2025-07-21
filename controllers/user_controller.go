@@ -10,19 +10,29 @@ import (
 
 // CreateUserRequest represents the request body for creating a user
 type CreateUserRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	FullName string `json:"full_name" binding:"required"`
+	Username string `json:"username" binding:"required" example:"johndoe"`
+	Password string `json:"password" binding:"required" example:"password123"`
+	FullName string `json:"full_name" binding:"required" example:"John Doe"`
 }
 
 // UpdateUserRequest represents the request body for updating a user
 type UpdateUserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	FullName string `json:"full_name"`
+	Username string `json:"username" example:"johndoe_updated"`
+	Password string `json:"password" example:"newpassword123"`
+	FullName string `json:"full_name" example:"John Doe Updated"`
 }
 
 // CreateUser creates a new user
+// @Summary Create a new user
+// @Description Create a new user account (public endpoint)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body CreateUserRequest true "User creation data"
+// @Success 201 {object} map[string]interface{} "User created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request format"
+// @Failure 500 {object} map[string]interface{} "Failed to create user"
+// @Router /users [post]
 func CreateUser(c *gin.Context) {
 	var req CreateUserRequest
 
@@ -60,6 +70,16 @@ func CreateUser(c *gin.Context) {
 }
 
 // GetUsers retrieves all users
+// @Summary Get all users
+// @Description Retrieve a list of all users (protected endpoint)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "List of users"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Failed to retrieve users"
+// @Router /users [get]
 func GetUsers(c *gin.Context) {
 	users, err := models.GetAllUsers()
 	if err != nil {
@@ -77,6 +97,18 @@ func GetUsers(c *gin.Context) {
 }
 
 // GetUser retrieves a single user by ID
+// @Summary Get user by ID
+// @Description Retrieve a specific user by their ID (protected endpoint)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]interface{} "User details"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Router /users/{id} [get]
 func GetUser(c *gin.Context) {
 	// Get user ID from URL parameter
 	idParam := c.Param("id")
@@ -104,6 +136,20 @@ func GetUser(c *gin.Context) {
 }
 
 // UpdateUser updates an existing user
+// @Summary Update user
+// @Description Update an existing user's information (protected endpoint)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Param user body UpdateUserRequest true "User update data"
+// @Success 200 {object} map[string]interface{} "User updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Failed to update user"
+// @Router /users/{id} [put]
 func UpdateUser(c *gin.Context) {
 	// Get user ID from URL parameter
 	idParam := c.Param("id")
@@ -163,6 +209,18 @@ func UpdateUser(c *gin.Context) {
 }
 
 // DeleteUser deletes a user by ID
+// @Summary Delete user
+// @Description Delete a user by their ID (protected endpoint)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]interface{} "User deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Router /users/{id} [delete]
 func DeleteUser(c *gin.Context) {
 	// Get user ID from URL parameter
 	idParam := c.Param("id")

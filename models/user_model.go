@@ -11,11 +11,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// User represents a user in the system
 type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
+	ID       int    `json:"id" example:"1"`
+	Username string `json:"username" example:"johndoe"`
 	Password string `json:"password,omitempty"` // omitempty เพื่อไม่ส่ง password ใน response
-	FullName string `json:"full_name"`
+	FullName string `json:"full_name" example:"John Doe"`
 }
 
 var db *sql.DB

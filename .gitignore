@@ -68,3 +68,6 @@ tmp/
 
 # Delve debugger
 debug
+
+# Swagger generated files (uncomment if you want to ignore auto-generated docs)
+# docs/

@@ -10,18 +10,29 @@ import (
 
 // LoginRequest represents the login request body
 type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username" binding:"required" example:"darkpiaro"`
+	Password string `json:"password" binding:"required" example:"password123"`
 }
 
 // LoginResponse represents the login response
 type LoginResponse struct {
-	Token    string      `json:"token"`
-	User     models.User `json:"user"`
-	Message  string      `json:"message"`
+	Token   string      `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	User    models.User `json:"user"`
+	Message string      `json:"message" example:"Login successful"`
 }
 
 // Login handles user authentication
+// @Summary User Login
+// @Description Authenticate user and return JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param login body LoginRequest true "Login credentials"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} map[string]interface{} "Invalid request format"
+// @Failure 401 {object} map[string]interface{} "Invalid username or password"
+// @Failure 500 {object} map[string]interface{} "Failed to generate token"
+// @Router /login [post]
 func Login(c *gin.Context) {
 	var loginReq LoginRequest
 
